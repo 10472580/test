@@ -7,8 +7,8 @@ from utils.M3U8Downloader import M3U8Downloader
 from utils.PasswordZip import PasswordZip
 from utils.aliyun import upload_aliyun,set_token
 
-os.environ["HTTP_PROXY"] = "http://127.0.0.1:7897"
-os.environ["HTTPS_PROXY"] = "http://127.0.0.1:7897"
+# os.environ["HTTP_PROXY"] = "http://127.0.0.1:7897"
+# os.environ["HTTPS_PROXY"] = "http://127.0.0.1:7897"
 
 import requests
 from lxml import etree
