@@ -1,6 +1,8 @@
 import os
 import time
 import hashlib
+import shutil
+import traceback
 from utils.AESCBCPKCS7 import AESCBCPKCS7
 from utils.M3U8Downloader import M3U8Downloader
 from utils.PasswordZip import PasswordZip
@@ -66,17 +68,21 @@ def is_finish(md5, query_flag=True , token = False):
 def get_page():
     page = 0
     while True:
-        page += 1
-        url = "https://91porny.com/author/%E9%9F%A6%E5%B0%8F%E5%AE%9D%E5%91%80?page=" + str(page)
-        response = requests.get(url, headers=headers).text
-        html = etree.HTML(response)
-        videos = html.xpath('//div[@class="colVideoList"]//a[contains(@class, "title")]')
-        if len(videos) == 0:
-            break
-        for video in videos:
-            url = "https://91porny.com" + video.attrib['href']
-            download(url, video.text)
-
+        try:
+            page += 1
+            url = "https://91porny.com/author/%E9%9F%A6%E5%B0%8F%E5%AE%9D%E5%91%80?page=" + str(page)
+            response = requests.get(url, headers=headers).text
+            html = etree.HTML(response)
+            videos = html.xpath('//div[@class="colVideoList"]//a[contains(@class, "title")]')
+            if len(videos) == 0:
+                break
+            for video in videos:
+                url = "https://91porny.com" + video.attrib['href']
+                download(url, video.text)
+        except:
+            shutil.rmtree("downloads")
+            traceback.print_exc()
+            input("回车继续：")
 
 if __name__ == '__main__':
     ase = AESCBCPKCS7()

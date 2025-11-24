@@ -163,6 +163,19 @@ def merge_videos_with_filelist(file_list_path, output_path, max_files_per_batch=
     return final_success
 
 
+# 使用示例
+# if __name__ == "__main__":
+#     # 示例用法
+#     file_list = "video_list.txt"  # 替换为您的文件列表路径
+#     output = "merged_video.mp4"  # 替换为您的输出路径
+#
+#     # 调用函数
+#     success = merge_videos_with_filelist(file_list, output, max_files_per_batch=2)
+#
+#     if success:
+#         print("合并成功！")
+#     else:
+#         print("合并失败！")
 
 
 

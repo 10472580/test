@@ -1,6 +1,8 @@
 import os
 import hashlib
 import time
+import shutil
+import traceback
 
 from utils.AESCBCPKCS7 import AESCBCPKCS7
 from utils.M3U8Downloader import M3U8Downloader
@@ -71,16 +73,20 @@ def is_finish(md5, query_flag=True , token = False):
 def get_page():
     page = 0
     while True:
-        page += 1
-        url = "https://rouva2.xyz/search?q=91%E5%A4%A7%E7%A5%9E+%E9%9F%8B%E5%B0%8F%E5%AF%B6&t=&sort=&page=" + str(page)
-        response = requests.get(url, headers=headers).text
-        html = etree.HTML(response)
-        videos = html.xpath('//div[@class="aspect-video relative"]/a')
-        if len(videos) == 0:
-            break
-        for video in videos:
-            download(video.attrib['href'], video.xpath('./img[@class="relative w-full h-full object-contain"]/@alt')[0])
-
+        try:
+            page += 1
+            url = "https://rouva2.xyz/search?q=91%E5%A4%A7%E7%A5%9E+%E9%9F%8B%E5%B0%8F%E5%AF%B6&t=&sort=&page=" + str(page)
+            response = requests.get(url, headers=headers).text
+            html = etree.HTML(response)
+            videos = html.xpath('//div[@class="aspect-video relative"]/a')
+            if len(videos) == 0:
+                break
+            for video in videos:
+                download(video.attrib['href'], video.xpath('./img[@class="relative w-full h-full object-contain"]/@alt')[0])
+        except:
+            shutil.rmtree("downloads")
+            traceback.print_exc()
+            input("回车继续：")
 
 if __name__ == '__main__':
     ase = AESCBCPKCS7()
