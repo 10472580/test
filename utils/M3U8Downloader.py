@@ -16,6 +16,155 @@ system = platform.system().lower()
 if system == 'windows':
     os.environ["PATH"] += os.pathsep + "./ffmpeg/win"
 
+# !/usr/bin/env python3
+import os
+import subprocess
+import tempfile
+import shutil
+from pathlib import Path
+
+
+def merge_videos_with_filelist(file_list_path, output_path, max_files_per_batch=2):
+    """
+    使用文件列表合并视频（低内存优化版本）
+
+    参数:
+        file_list_path: 包含视频文件路径的文本文件
+        output_path: 输出文件路径
+        max_files_per_batch: 每批处理的文件数量（默认2个）
+    """
+
+    def read_file_list(file_path):
+        """读取文件列表并返回视频文件路径列表"""
+        video_files = []
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("file '"):
+                        # 提取文件路径: 从 "file '/path/to/video.mp4'" 中提取路径
+                        file_path = line[6:-1]  # 移除 "file '" 和结尾的 "'"
+                        if os.path.exists(file_path):
+                            video_files.append(file_path)
+        except Exception as e:
+            print(f"读取文件列表失败: {e}")
+        return video_files
+
+    def create_temp_file_list(files, suffix=""):
+        """创建临时文件列表"""
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=f'{suffix}.txt') as f:
+            for file_path in files:
+                f.write(f"file '{os.path.abspath(file_path)}'\n")
+        return f.name
+
+    def merge_batch(video_files, batch_output_path):
+        """合并一批视频文件"""
+        batch_file_list = create_temp_file_list(video_files, "_batch")
+        temp_files_to_clean = [batch_file_list]
+
+        try:
+            cmd = [
+                'ffmpeg',
+                '-f', 'concat',
+                '-safe', '0',
+                '-i', batch_file_list,
+                '-c', 'copy',
+                '-threads', '1',
+                '-max_muxing_queue_size', '512',
+                '-y',
+                batch_output_path
+            ]
+
+            print(f"正在合并 {len(video_files)} 个文件到: {batch_output_path}")
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=300
+            )
+
+            if result.returncode == 0:
+                return True
+            else:
+                print(f"合并失败: {result.stderr}")
+                return False
+
+        except subprocess.TimeoutExpired:
+            print("合并操作超时")
+            return False
+        except Exception as e:
+            print(f"合并过程中发生错误: {e}")
+            return False
+        finally:
+            # 清理临时文件
+            for temp_file in temp_files_to_clean:
+                if os.path.exists(temp_file):
+                    os.unlink(temp_file)
+
+    # 主逻辑开始
+    print(f"开始处理文件列表: {file_list_path}")
+    print(f"输出路径: {output_path}")
+    print(f"每批处理文件数: {max_files_per_batch}")
+
+    # 读取视频文件列表
+    video_files = read_file_list(file_list_path)
+    if not video_files:
+        print("未找到有效的视频文件")
+        return False
+
+    print(f"找到 {len(video_files)} 个视频文件")
+
+    # 如果文件数量少，直接合并
+    if len(video_files) <= max_files_per_batch:
+        return merge_batch(video_files, output_path)
+
+    # 分片处理
+    batches = []
+    for i in range(0, len(video_files), max_files_per_batch):
+        batch = video_files[i:i + max_files_per_batch]
+        batches.append(batch)
+
+    # 逐批合并
+    temp_results = []
+    for i, batch in enumerate(batches):
+        temp_output = f"temp_batch_{i}.mp4"
+        success = merge_batch(batch, temp_output)
+        if success:
+            temp_results.append(temp_output)
+        else:
+            print(f"批处理 {i} 失败")
+            # 清理已生成的临时文件
+            for temp_file in temp_results:
+                if os.path.exists(temp_file):
+                    os.unlink(temp_file)
+            return False
+
+    # 合并所有临时文件
+    if len(temp_results) > 1:
+        final_file_list = create_temp_file_list(temp_results, "_final")
+        final_success = merge_batch(temp_results, output_path)
+        if os.path.exists(final_file_list):
+            os.unlink(final_file_list)
+    else:
+        # 只有一个批次，直接重命名
+        shutil.move(temp_results[0], output_path)
+        final_success = True
+
+    # 清理临时文件
+    for temp_file in temp_results:
+        if os.path.exists(temp_file):
+            os.unlink(temp_file)
+
+    if final_success:
+        print(f"视频合并完成: {output_path}")
+    else:
+        print("最终合并失败")
+
+    return final_success
+
+
+
+
 
 class M3U8Downloader:
     def __init__(self, headers=None):
@@ -132,12 +281,13 @@ class M3U8Downloader:
                 f.write(f"file '{ts_file}'\n")
 
         # 使用ffmpeg合并（需要提前安装ffmpeg并添加到环境变量）
-        cmd = f'ffmpeg -f concat -safe 0 -i "{file_list_path}" -c copy "{output_path}"'
-        result = os.system(cmd)
-
+        # cmd = f'ffmpeg -f concat -safe 0 -i "{file_list_path}" -c copy "{output_path}"'
+        # result = os.system(cmd)
+        # return result == 0
+        success = merge_videos_with_filelist(file_list_path , output_path)
         # 清理临时文件
         os.remove(file_list_path)
-        return result == 0
+        return success
 
     def download_video(self, m3u8_url, output_dir, video_name, thread_num=10):
         """主下载方法"""
