@@ -34,7 +34,7 @@ def download(url, file_name):
     folder_path = "downloads/" + md5
     os.makedirs(folder_path, exist_ok=True)
 
-    M3U8Downloader().download_video(m3u8_url, folder_path, "1.mp4")
+    M3U8Downloader().download_video(m3u8_url, folder_path, "1.mp4" , thread_num = 2)
 
     with open(folder_path + "/0", "w+") as f:
         f.write(ase.encrypt(file_name))
