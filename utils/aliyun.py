@@ -188,7 +188,7 @@ def upload_single_file_chunked(local_file: str, parent_folder_id: str):
             print(f"Uploading chunk {part_num}/{len(part_info_list)} [{start}-{end}]")
 
             try:
-                r = put(upload_url, data=chunk_data, )
+                r = put(upload_url, data=chunk_data)
                 if r.status_code != 200:
                     print(f"Chunk {part_num} failed: {r.status_code}, {r.text}")
                     return
