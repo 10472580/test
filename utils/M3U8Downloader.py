@@ -35,12 +35,12 @@ class M3U8Downloader:
         """获取最终的m3u8文件地址"""
         response = self.get(first_url)
         content = response.text
-
+        print(content)
         # 如果是多级m3u8，获取最终的m3u8地址
         if '#EXT-X-STREAM-INF' in content:
             lines = content.split('\n')
-            for line in lines:
-                if line.endswith('.m3u8'):
+            for line in lines[::-1]:
+                if '.m3u8' in line:
                     return urljoin(first_url, line)
         return first_url
 
@@ -145,6 +145,7 @@ class M3U8Downloader:
 
         # 获取最终m3u8地址
         final_url = self.get_final_m3u8_url(m3u8_url)
+        print(m3u8_url)
         print(f"最终m3u8地址: {final_url}")
 
         # 解析m3u8文件

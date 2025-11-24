@@ -21,9 +21,9 @@ def download(url, file_name):
         return
 
 
-    videoUrl = requests.get("https://rouva2.xyz/api/v/" + url.split('/')[-1], headers=headers).json()['video']["videoUrl"]
-    m3u8_url = requests.get(videoUrl, headers=headers).text.split("\n")[-1] # m3u8清晰度
-    print(m3u8_url)
+    m3u8_url = requests.get("https://rouva2.xyz/api/v/" + url.split('/')[-1], headers=headers).json()['video']["videoUrl"]
+    # m3u8_url = requests.get(videoUrl, headers=headers).text.split("\n")[-1] # m3u8清晰度
+    # print(m3u8_url)
 
     # response = requests.get(url, headers=headers).text
     # html = etree.HTML(response)
