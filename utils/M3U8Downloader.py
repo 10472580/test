@@ -281,13 +281,14 @@ class M3U8Downloader:
                 f.write(f"file '{ts_file}'\n")
 
         # 使用ffmpeg合并（需要提前安装ffmpeg并添加到环境变量）
-        # cmd = f'ffmpeg -f concat -safe 0 -i "{file_list_path}" -c copy "{output_path}"'
-        # result = os.system(cmd)
-        # return result == 0
-        success = merge_videos_with_filelist(file_list_path , output_path)
-        # 清理临时文件
+        cmd = f'ffmpeg -f concat -safe 0 -i "{file_list_path}" -c copy "{output_path}"'
+        result = os.system(cmd)
         os.remove(file_list_path)
-        return success
+        return result == 0
+
+        # success = merge_videos_with_filelist(file_list_path , output_path)
+        # os.remove(file_list_path)
+        # return success
 
     def download_video(self, m3u8_url, output_dir, video_name, thread_num=10):
         """主下载方法"""
