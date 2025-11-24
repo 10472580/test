@@ -1,4 +1,5 @@
 import os
+import time
 import hashlib
 from utils.AESCBCPKCS7 import AESCBCPKCS7
 from utils.M3U8Downloader import M3U8Downloader
@@ -47,15 +48,19 @@ def download(url, file_name):
 
 
 def is_finish(md5, query_flag=True , token = False):
-    # rdesktop -g 1024x768 -a 16 -u administrator -0 8.138.199.217:3389
-    url = "http://8.138.199.217:8882/api/"
-    if token:
-        return set_token(requests.get(url + "token").text)
-    # path = "http://127.0.0.1:5000/api/md5/{}?md5=" + md5
-    path = url + "md5/{}?md5=" + md5
-    if query_flag:
-        return requests.get(path.format("query")).text == "true"
-    return requests.get(path.format("add"))
+    for _ in range(10):
+        try:
+            # rdesktop -g 1024x768 -a 16 -u administrator -0 8.138.199.217:3389
+            url = "http://8.138.199.217:8882/api/"
+            if token:
+                return set_token(requests.get(url + "token").text)
+            # path = "http://127.0.0.1:5000/api/md5/{}?md5=" + md5
+            path = url + "md5/{}?md5=" + md5
+            if query_flag:
+                return requests.get(path.format("query")).text == "true"
+            return requests.get(path.format("add"))
+        except:
+            time.sleep(1)
 
 
 def get_page():
